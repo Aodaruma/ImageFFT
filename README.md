@@ -2,6 +2,8 @@
 
 画像のフーリエ変換・逆フーリエ変換を行うプラグインです。
 
+![ImageFFT](https://github.com/Aodaruma/ImageFFT/blob/main/thumnbnail.png?raw=true)
+
 現在は **version 1.0** が最新です。
 
 ## FFT@ImageFFT
