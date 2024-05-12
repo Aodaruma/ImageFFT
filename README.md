@@ -1,30 +1,35 @@
-# AviUtl-repoTemplate
+# ImageFFT
 
-AviUtl 用のスクリプト/プラグインのリポジトリテンプレート。
+画像のフーリエ変換・逆フーリエ変換を行うプラグインです。
 
-a repository template of AviUtl script or plugins.
+現在は **version 1.0** が最新です。
 
-## 概要
+## FFT@ImageFFT
 
-このリポジトリテンプレートは、AviUtlのスクリプトファイルの特性を反映するために、`.gitattributes`に改行コードや言語について指定がされています。
-また、[vscode](https://code.visualstudio.com/)でいい感じに開発できるような設定ファイルを導入しています。
+以下はパラメーターの説明です。
 
-## 使い方
+-   **トラックバー・チェックボックス**
+    -   Channel: FFT を実行する画像チャンネル [All, Mono, Red, Green, Blue, Alpha]
+    -   Re<->Im: 出力する画像の実部・虚部切り替え（Channel == "All"のみ有効; その他では R で実部・G で虚部を出力します。）
+    -   Enable: FFT を実行するかどうか
+    -   ShowHelp: このヘルプを表示するかどうか
 
-1. Use this templateよりリポジトリをテンプレートとして利用。
-2. IDEなどで該当リポジトリのフォルダを開く(vscode推奨)
-3. `src/`内の必要なスクリプトを残し、スクリプトファイル内の表記に従いスクリプトを書く。
+## IFFT@ImageFFT
 
-## スクリプトをどうやって書けばいいか分からない
+以下はパラメーターの説明です。
 
-AviUtlのスクリプトの作り方が分からない場合は、以下のドキュメントを参考にしてみてください。
+-   **トラックバー・チェックボックス**
+    -   Channel: IFFT の実行結果の出力先画像チャンネル [All, Mono, Red, Green, Blue, Alpha]
+    -   Re<->Im: 入力する画像が実部・虚部いずれか（Channel == \"All\"のみ有効; その他では R で実部・G で虚部としてロードします。）
+    -   Enable: IFFT を実行するかどうか
+    -   ShowHelp: このヘルプを表示するかどうか
 
-- AviUtl scrapbox: <https://scrapbox.io/aviutl/>
-  - <https://scrapbox.io/aviutl/スクリプト開発を始めるには%EF%BC%9F>
-  - <https://scrapbox.io/aviutl/スクリプトファイル_フォーマット>
-- Lua 5.1 リファレンスマニュアル: <http://milkpot.sakura.ne.jp/lua/lua51_manual_ja.html>
-  - 公式のドキュメントも利用できます(英語): <http://www.lua.org/manual/5.1/manual.html>
+---
 
-## ライセンス
+## 導入方法 / how to install
 
-当テンプレートリポジトリで作られるAviUtlスクリプトは、LPGLに従うように事前に書き込みがされています。
+[こちらのリポジトリ](https://github.com/Aodaruma/Aodaruma-AviUtl-Script)を参照してください。
+
+## ライセンス / Licence
+
+[こちらのリポジトリ](https://github.com/Aodaruma/Aodaruma-AviUtl-Script)を参照してください。
