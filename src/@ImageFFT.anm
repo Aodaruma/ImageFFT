@@ -1,0 +1,139 @@
+--[[
+# 日本語 ########################################
+このファイルは、AviUtlのanm（アニメーション）スクリプトの雛形です。
+このファイルをテンプレートとして、あなた独自のスクリプトを作成することができます。
+AviUtlのスクリプトの作り方が分からない場合は、以下のドキュメントを参考にしてみてください。
+- AviUtl scrapbox: https://scrapbox.io/aviutl/
+    - https://scrapbox.io/aviutl/スクリプト開発を始めるには%EF%BC%9F
+    - https://scrapbox.io/aviutl/スクリプトファイル_フォーマット
+- Lua 5.1 リファレンスマニュアル: http://milkpot.sakura.ne.jp/lua/lua51_manual_ja.html
+    - 公式のドキュメントも利用できます(英語): http://www.lua.org/manual/5.1/manual.html
+
+このファイルを新しいスクリプトとして公開する前に、以下のことを行ってください。
+1. このファイルの LICENSE セクションの YOUR_PROGRAM_NAME_HERE をスクリプト名に変更する。（例: "MyScript"）
+2. このファイルの LICENSE セクションの YOUR_NAME_HERE を自分の名前に変更する。 (例: "Taro Yamada")
+3. このコメントを削除して、スクリプトを書いてください。
+それでは、よいスクリプト作りを! :)
+
+# English ########################################
+This file is a template for an anm(animation) script of AviUtl.
+You can use this file as a template for your own script.
+If you don't know how to make a script of AviUtl, please read the following documents.
+- AviUtl scrapbox (Japanese): https://scrapbox.io/aviutl/
+    - https://scrapbox.io/aviutl/スクリプト開発を始めるには%EF%BC%9F
+    - https://scrapbox.io/aviutl/スクリプトファイル_フォーマット
+- Lua 5.1 Reference Manual: http://www.lua.org/manual/5.1/manual.html
+
+Before you release this file as your new script, following things should be done.
+1. Change a term "YOUR_PROGRAM_NAME_HERE" to your script name in LICENSE section of this file.
+2. Change a term "YOUR_NAME_HERE" to your name in LICENSE section of this file.
+3. Delete this comments and write your script.
+Have a nice script making! :)
+]]
+
+--[[
+========== LGPL LICENSE SECTION ================================
+This file is part of script/plugin "ImageFFT" of AviUtl.
+
+"ImageFFT" is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by the Free software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+"ImageFFT" is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License along with this program.
+If not, see <http://www.gnu.org/licenses/>.
+========== LPGL LICENSE SECTION END ==============================
+
+developed by Aodaruma
+]]
+
+-------------------------------------------------------------
+@FFT
+-------------------------------------------------------------
+--track0:Channel,0,5,0,1
+--track1:Re<->Im,0,1,0,1
+--track2:SwapQ,0,1,0,1
+--track3:Enable,0,1,0,1
+--check0:ShowHelp,0
+
+package.cpath = package.cpath .. ";" .. obj.getinfo "script_path":gsub("[^\\]+\\$", "?.dll")
+require("ImageFFT")
+
+local channel, export_type, is_swapping_quadrant, is_enable = obj.track0, obj.track1, obj.track2==1, obj.track3==1
+local is_show_help = obj.check0
+if is_show_help then
+    obj.setfont("メイリオ", 50)
+    local msg =
+        "FFT@ImageFFT.anm, layer" ..
+        obj.layer .. ":\n\nFFT@ImageFFTのオプション:\n"
+        .. "- Channel: FFTを実行する画像チャンネル [All, Mono, Red, Green, Blue, Alpha]\n"
+        .. "- Re<->Im: 出力する画像の実部・虚部切り替え（Channel == \"All\"のみ有効; その他ではRで実部・Gで虚部を出力します。）\n"
+        .. "- Enable: FFTを実行するかどうか\n"
+        .. "- ShowHelp: このヘルプを表示するかどうか\n"
+        .. "\n"
+        .. "ImageFFT - developed by Aodaruma"
+    obj.load(msg)
+else
+    if is_enable then
+        if ImageFFT then
+            local d, w, h = obj.getpixeldata()
+            ImageFFT.main(d, w, h, 0, channel, export_type, is_swapping_quadrant)
+            obj.putpixeldata(d)
+            obj.setoption("antialias", 0)
+        else
+            obj.setfont("メイリオ", 50)
+            local msg =
+                "FFT@ImageFFT.anm, layer" ..
+                obj.layer .. ":\nImageFFT.dllがexedit.aufがあるフォルダー以下に見つかりませんでした。\nスクリプトが所定の場所にあるか確認してください。"
+            obj.load(msg)
+            error(msg)
+        end
+    end
+end
+
+-------------------------------------------------------------
+@IFFT
+-------------------------------------------------------------
+--track0:Channel,0,5,0,1
+--track1:Re<->Im,0,1,0,1
+--track2:SwapQ,0,1,0,1
+--track3:Enable,0,1,0,1
+--check0:ShowHelp,0
+
+package.cpath = package.cpath .. ";" .. obj.getinfo "script_path":gsub("[^\\]+\\$", "?.dll")
+require("ImageFFT")
+
+local channel, export_type, is_swapping_quadrant, is_enable = obj.track0, obj.track1, obj.track2==1, obj.track3==1
+local is_show_help = obj.check0
+if is_show_help then
+    obj.setfont("メイリオ", 50)
+    local msg =
+        "IFFT@ImageFFT.anm, layer" ..
+        obj.layer .. ":\n\nIFFT@ImageFFTのオプション:\n"
+        .. "- Channel: IFFTの実行結果の出力先画像チャンネル [All, Mono, Red, Green, Blue, Alpha]\n"
+        .. "- Re<->Im: 入力する画像が実部・虚部いずれか（Channel == \"All\"のみ有効; その他ではRで実部・Gで虚部としてロードします。）\n"
+        .. "- Enable: IFFTを実行するかどうか\n"
+        .. "- ShowHelp: このヘルプを表示するかどうか\n"
+        .. "\n"
+        .. "ImageFFT - developed by Aodaruma"
+    obj.load(msg)
+else
+    if is_enable then
+        if ImageFFT then
+            local d, w, h = obj.getpixeldata()
+            ImageFFT.main(d, w, h, 1, channel, export_type, is_swapping_quadrant)
+            obj.putpixeldata(d)
+            obj.setoption("antialias", 0)
+        else
+            obj.setfont("メイリオ", 50)
+            local msg =
+                "IFFT@ImageFFT.anm, layer" ..
+                obj.layer .. ":\nImageFFT.dllがexedit.aufがあるフォルダー以下に見つかりませんでした。\nスクリプトが所定の場所にあるか確認してください。"
+            obj.load(msg)
+            error(msg)
+        end
+    end
+end
