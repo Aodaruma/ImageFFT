@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "sumneko.lua",
+        "trixnz.vscode-lua",
+        "bierner.markdown-preview-github-styles",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint"
+    ]
+}
