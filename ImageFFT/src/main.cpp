@@ -71,6 +71,10 @@ enum class ExportCurveType {
 const double UcharConvConst = 255. / 8.;
 const double InvUcharConvConst = 8. / 255.;
 
+double sign(double t){
+    return signbit(t) ? -1 : 1;
+}
+
 // ---------------------------------------------------------
 
 unsigned char convDoubleToUchar(double value) {
