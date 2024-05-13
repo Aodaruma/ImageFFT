@@ -171,10 +171,10 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 			// Export real part
 			for (int i = 0; i < h; i++) {
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = (unsigned char)(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = (unsigned char)(result[1][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].b = (unsigned char)(result[2][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].a = (unsigned char)(result[3][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].r = clampDoubleToChar(result[0][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].g = clampDoubleToChar(result[1][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].b = clampDoubleToChar(result[2][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].a = clampDoubleToChar(result[3][i * w + j].real() / N /2 +128);
 				}
 			}
 		}
@@ -182,10 +182,10 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 			// Export imaginary part
 			for (int i = 0; i < h; i++) {
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = (unsigned char)(result[0][i * w + j].imag() / N /2 +128);
-					export_data[i * w + j].g = (unsigned char)(result[1][i * w + j].imag() / N /2 +128);
-					export_data[i * w + j].b = (unsigned char)(result[2][i * w + j].imag() / N /2 +128);
-					export_data[i * w + j].a = (unsigned char)(result[3][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = clampDoubleToChar(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].g = clampDoubleToChar(result[1][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].b = clampDoubleToChar(result[2][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].a = clampDoubleToChar(result[3][i * w + j].imag() / N /2 +128);
 				}
 			}
 		}
@@ -196,32 +196,32 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		case FFTchannel::RED:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = (unsigned char)(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = (unsigned char)(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = clampDoubleToChar(result[0][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].g = clampDoubleToChar(result[0][i * w + j].imag() / N /2 +128);
 				}
 			break;
 
 		case FFTchannel::GREEN:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = (unsigned char)(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = (unsigned char)(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = clampDoubleToChar(result[0][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].g = clampDoubleToChar(result[0][i * w + j].imag() / N /2 +128);
 				}
 			break;
 
 		case FFTchannel::BLUE:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = (unsigned char)(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = (unsigned char)(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = clampDoubleToChar(result[0][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].g = clampDoubleToChar(result[0][i * w + j].imag() / N /2 +128);
 				}
 			break;
 
 		case FFTchannel::ALPHA:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = (unsigned char)(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = (unsigned char)(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = clampDoubleToChar(result[0][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].g = clampDoubleToChar(result[0][i * w + j].imag() / N /2 +128);
 				}
 			break;
 
@@ -229,8 +229,8 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		case FFTchannel::MONOCHROME:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = (unsigned char)(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = (unsigned char)(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = clampDoubleToChar(result[0][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].g = clampDoubleToChar(result[0][i * w + j].imag() / N /2 +128);
 				}
 			break;
 		}
