@@ -266,15 +266,15 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		for (int i = 0; i < h; i++) {
 			for (int j = 0; j < w; j++) {
 				if (export_type == ExportReIm::EXPORT_REAL){
-					data[0].push_back(complex<double>((pixels[i * w + j].r - 128) * 2 * (N/2), 0));
-					data[1].push_back(complex<double>((pixels[i * w + j].g - 128) * 2 * (N/2), 0));
-					data[2].push_back(complex<double>((pixels[i * w + j].b - 128) * 2 * (N/2), 0));
-					data[3].push_back(complex<double>((pixels[i * w + j].a - 128) * 2 * (N/2), 0));
+					data[0].push_back(complex<double>((p.r - 128) * 2 * (N/2), 0));
+					data[1].push_back(complex<double>((p.g - 128) * 2 * (N/2), 0));
+					data[2].push_back(complex<double>((p.b - 128) * 2 * (N/2), 0));
+					data[3].push_back(complex<double>((p.a - 128) * 2 * (N/2), 0));
 				}else{
-					data[0].push_back(complex<double>(0, (pixels[i * w + j].r - 128) * 2 * (N/2)));
-					data[1].push_back(complex<double>(0, (pixels[i * w + j].g - 128) * 2 * (N/2)));
-					data[2].push_back(complex<double>(0, (pixels[i * w + j].b - 128) * 2 * (N/2)));
-					data[3].push_back(complex<double>(0, (pixels[i * w + j].a - 128) * 2 * (N/2)));
+					data[0].push_back(complex<double>((0, p.r - 128) * 2 * (N/2)));
+					data[1].push_back(complex<double>((0, p.g - 128) * 2 * (N/2)));
+					data[2].push_back(complex<double>((0, p.b - 128) * 2 * (N/2)));
+					data[3].push_back(complex<double>((0, p.a - 128) * 2 * (N/2)));
 				}
 			}
 		}
@@ -282,13 +282,15 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 	else {
 		data.resize(1);
 		for (int i = 0; i < h; i++)
-			for (int j = 0; j < w; j++)
+			for (int j = 0; j < w; j++) {
+				Pixel_RGBA p = pixels[i * w + j];
 				data[0].push_back(
 					complex<double>(
-						(pixels[i * w + j].r - 128) * 2 * (N / 2),
-						(pixels[i * w + j].g - 128) * 2 * (N / 2)
+						(p.r - 128) * 2 * (N / 2),
+						(p.g - 128) * 2 * (N / 2)
 					)
 				);
+			}
 	}
 
 	// Swap quadrants
