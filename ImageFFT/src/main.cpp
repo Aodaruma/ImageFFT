@@ -27,13 +27,14 @@ developed by Aodaruma
 #define DEBUG(x)
 #define IS_DEBUG false
 #else // print
-#define DEBUG(x)  std::cout << x << std::endl;
+#define DEBUG(x) cout << x << endl;
 #define IS_DEBUG true
 #endif
 
 #define FFT_N_THREADS 8
 
 using namespace pocketfft;
+using namespace std;
 
 struct Pixel_RGBA {
     unsigned char b;
@@ -75,7 +76,7 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 	
 	// Convert Pixel_RGBA to vector of doubles
 	DEBUG("[ImageFFT.FFT] Converting Pixel_RGBA to vector of doubles");
-	std::vector<std::vector<double>> data;
+	vector<vector<double>> data;
 
 	switch (channel)
 	{
@@ -136,7 +137,7 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		axes.push_back(i);
 	stride_t stride_in(shape.size()), stride_out(shape.size());
 	size_t tmp_in = sizeof(double);
-	size_t tmp_out = sizeof(std::complex<double>);
+	size_t tmp_out = sizeof(complex<double>);
 	for (int i = shape.size() - 1; i >= 0; i--)
 	{
 		stride_in[i] = tmp_in;
@@ -144,21 +145,21 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		stride_out[i] = tmp_out;
 		tmp_out *= shape[i];
 	}
-	std::vector<std::vector<std::complex<double>>> result;
+	vector<vector<complex<double>>> result;
 
 	DEBUG("[ImageFFT.FFT] Process FFT");
 	for (unsigned int i = 0; i < data.size(); i++) {
-		DEBUG("[ImageFFT.FFT] Process FFT channel " + std::to_string(i) + "");
-		std::vector<std::complex<double>> res(w * h);
+		DEBUG("[ImageFFT.FFT] Process FFT channel " + to_string(i) + "");
+		vector<complex<double>> res(w * h);
 		r2c(shape, stride_in, stride_out, axes, FORWARD, data[i].data(), res.data(), 1., FFT_N_THREADS);
 		result.push_back(res);
 	}
 
-	DEBUG("[ImageFFT.FFT] Done; result size: " + std::to_string(result.size()) + "; result[0] size: " + std::to_string(result[0].size()) + "; result[0][0]: " + std::to_string(result[0][0].real()) + "+" + std::to_string(result[0][0].imag()) + "i");
+	DEBUG("[ImageFFT.FFT] Done; result size: " + to_string(result.size()) + "; result[0] size: " + to_string(result[0].size()) + "; result[0][0]: " + to_string(result[0][0].real()) + "+" + to_string(result[0][0].imag()) + "i");
 
 	// Export result
 	DEBUG("[ImageFFT.FFT] Exporting result");
-	std::vector<Pixel_RGBA> export_data;
+	vector<Pixel_RGBA> export_data;
 	export_data.resize(w * h);
 	for (int i = 0; i < h; i++)
 		for (int j = 0; j < w; j++)
@@ -240,8 +241,8 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		DEBUG("[ImageFFT.FFT] Swapping quadrants");
 		for (int i = 0; i < h / 2; i++) {
 			for (int j = 0; j < w / 2; j++) {
-				std::swap(export_data[i * w + j], export_data[(i + h / 2) * w + (j + w / 2)]);
-				std::swap(export_data[(i + h / 2) * w + j], export_data[i * w + (j + w / 2)]);
+				swap(export_data[i * w + j], export_data[(i + h / 2) * w + (j + w / 2)]);
+				swap(export_data[(i + h / 2) * w + j], export_data[i * w + (j + w / 2)]);
 			}
 		}
 	}
@@ -257,7 +258,7 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 
 	// Convert Pixel_RGBA to vector of doubles
 	DEBUG("[ImageFFT.IFFT] Converting Pixel_RGBA to vector of doubles");
-	std::vector<std::vector<std::complex<double>>> data;
+	vector<vector<complex<double>>> data;
 	const double N = w * h;
 
 	if (channel == FFTchannel::ALL) {
@@ -265,15 +266,15 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		for (int i = 0; i < h; i++) {
 			for (int j = 0; j < w; j++) {
 				if (export_type == ExportReIm::EXPORT_REAL){
-					data[0].push_back(std::complex<double>((pixels[i * w + j].r - 128) * 2 * (N/2), 0));
-					data[1].push_back(std::complex<double>((pixels[i * w + j].g - 128) * 2 * (N/2), 0));
-					data[2].push_back(std::complex<double>((pixels[i * w + j].b - 128) * 2 * (N/2), 0));
-					data[3].push_back(std::complex<double>((pixels[i * w + j].a - 128) * 2 * (N/2), 0));
+					data[0].push_back(complex<double>((pixels[i * w + j].r - 128) * 2 * (N/2), 0));
+					data[1].push_back(complex<double>((pixels[i * w + j].g - 128) * 2 * (N/2), 0));
+					data[2].push_back(complex<double>((pixels[i * w + j].b - 128) * 2 * (N/2), 0));
+					data[3].push_back(complex<double>((pixels[i * w + j].a - 128) * 2 * (N/2), 0));
 				}else{
-					data[0].push_back(std::complex<double>(0, (pixels[i * w + j].r - 128) * 2 * (N/2)));
-					data[1].push_back(std::complex<double>(0, (pixels[i * w + j].g - 128) * 2 * (N/2)));
-					data[2].push_back(std::complex<double>(0, (pixels[i * w + j].b - 128) * 2 * (N/2)));
-					data[3].push_back(std::complex<double>(0, (pixels[i * w + j].a - 128) * 2 * (N/2)));
+					data[0].push_back(complex<double>(0, (pixels[i * w + j].r - 128) * 2 * (N/2)));
+					data[1].push_back(complex<double>(0, (pixels[i * w + j].g - 128) * 2 * (N/2)));
+					data[2].push_back(complex<double>(0, (pixels[i * w + j].b - 128) * 2 * (N/2)));
+					data[3].push_back(complex<double>(0, (pixels[i * w + j].a - 128) * 2 * (N/2)));
 				}
 			}
 		}
@@ -283,7 +284,7 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		for (int i = 0; i < h; i++)
 			for (int j = 0; j < w; j++)
 				data[0].push_back(
-					std::complex<double>(
+					complex<double>(
 						(pixels[i * w + j].r - 128) * 2 * (N / 2),
 						(pixels[i * w + j].g - 128) * 2 * (N / 2)
 					)
@@ -295,8 +296,8 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		DEBUG("[ImageFFT.IFFT] Swapping quadrants");
 		for (int i = 0; i < h / 2; i++) {
 			for (int j = 0; j < w / 2; j++) {
-				std::swap(data[0][i * w + j], data[0][(i + h / 2) * w + (j + w / 2)]);
-				std::swap(data[0][(i + h / 2) * w + j], data[0][i * w + (j + w / 2)]);
+				swap(data[0][i * w + j], data[0][(i + h / 2) * w + (j + w / 2)]);
+				swap(data[0][(i + h / 2) * w + j], data[0][i * w + (j + w / 2)]);
 			}
 		}
 	}
@@ -310,7 +311,7 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		axes.push_back(i);
 	stride_t stride_in(shape.size()), stride_out(shape.size());
 	size_t tmp_in = sizeof(double);
-	size_t tmp_out = sizeof(std::complex<double>);
+	size_t tmp_out = sizeof(complex<double>);
 	for (int i = shape.size() - 1; i >= 0; i--)
 	{
 		stride_in[i] = tmp_in;
@@ -318,21 +319,21 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		stride_out[i] = tmp_out;
 		tmp_out *= shape[i];
 	}
-	std::vector<std::vector<double>> result;
+	vector<vector<double>> result;
 
 	DEBUG("[ImageFFT.IFFT] Process IFFT");
 	for (unsigned int i = 0; i < data.size(); i++) {
-		DEBUG("[ImageFFT.IFFT] Process IFFT channel " + std::to_string(i) + "");
-		std::vector<double> res(w * h);
+		DEBUG("[ImageFFT.IFFT] Process IFFT channel " + to_string(i) + "");
+		vector<double> res(w * h);
 		c2r(shape, stride_out, stride_in, axes, BACKWARD, data[i].data(), res.data(), 1./(double)(w*h), FFT_N_THREADS);
 		result.push_back(res);
 	}
 
-	DEBUG("[ImageFFT.IFFT] Done; result size: " + std::to_string(result.size()) + "; result[0] size: " + std::to_string(result[0].size()) + "; result[0][0]: " + std::to_string(result[0][0]) + "");
+	DEBUG("[ImageFFT.IFFT] Done; result size: " + to_string(result.size()) + "; result[0] size: " + to_string(result[0].size()) + "; result[0][0]: " + to_string(result[0][0]) + "");
 
 	// Export result
 	DEBUG("[ImageFFT.IFFT] Exporting result");
-	std::vector<Pixel_RGBA> export_data;
+	vector<Pixel_RGBA> export_data;
 	export_data.resize(w * h);
 	for (int i = 0; i < h; i++)
 		for (int j = 0; j < w; j++)
@@ -438,23 +439,23 @@ int main(lua_State* L) {
 		avg /= w * h * 4;
 
 		// find mid
-		std::vector<Pixel_RGBA> sorted;
+		vector<Pixel_RGBA> sorted;
 		sorted.resize(w * h);
 		for (int i = 0; i < h; i++)
 			for (int j = 0; j < w; j++)
 				sorted[i * w + j] = pixels[i * w + j];
 
-		std::sort(sorted.begin(), sorted.end(), [](Pixel_RGBA a, Pixel_RGBA b) {
+		sort(sorted.begin(), sorted.end(), [](Pixel_RGBA a, Pixel_RGBA b) {
 			return a.r + a.g + a.b + a.a < b.r + b.g + b.b + b.a;
 			});
 
 		mid = sorted[w * h / 2];
 
 		DEBUG(
-			"[ImageFFT.main] Analyze: max: " + std::to_string(max.r) + ", " + std::to_string(max.g) + ", " + std::to_string(max.b) + ", " + std::to_string(max.a)
-			+ "; min: " + std::to_string(min.r) + ", " + std::to_string(min.g) + ", " + std::to_string(min.b) + ", " + std::to_string(min.a) 
-			+ "; avg: " + std::to_string(avg) 
-			+ "; mid: " + std::to_string(mid.r) + ", " + std::to_string(mid.g) + ", " + std::to_string(mid.b) + ", " + std::to_string(mid.a)
+			"[ImageFFT.main] Analyze: max: " + to_string(max.r) + ", " + to_string(max.g) + ", " + to_string(max.b) + ", " + to_string(max.a)
+			+ "; min: " + to_string(min.r) + ", " + to_string(min.g) + ", " + to_string(min.b) + ", " + to_string(min.a) 
+			+ "; avg: " + to_string(avg) 
+			+ "; mid: " + to_string(mid.r) + ", " + to_string(mid.g) + ", " + to_string(mid.b) + ", " + to_string(mid.a)
 		);
 	}
 
