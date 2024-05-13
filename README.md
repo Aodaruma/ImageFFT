@@ -4,7 +4,7 @@
 
 ![ImageFFT](https://github.com/Aodaruma/ImageFFT/blob/main/thumnbnail.png?raw=true)
 
-現在は **version 1.0** が最新です。
+現在は **version 0.1** が最新です。
 
 ## FFT@ImageFFT
 
