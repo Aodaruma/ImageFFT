@@ -76,11 +76,11 @@ unsigned char convDoubleToUchar(double value) {
 }
 
 double convUcharToDouble(unsigned char value) {
-	value = (double)value;
-	value -= 128;
-	value *= 2;
+	double result = (double)value;
+	result -= 128;
+	result *= 2;
 
-	return value;
+	return result;
 }
 
 // ---------------------------------------------------------
