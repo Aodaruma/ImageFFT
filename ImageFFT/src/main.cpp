@@ -278,6 +278,7 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		data.resize(4);
 		for (int i = 0; i < h; i++) {
 			for (int j = 0; j < w; j++) {
+				Pixel_RGBA p = pixels[i * w + j];
 				if (export_type == ExportReIm::EXPORT_REAL){
 					data[0].push_back(complex<double>(convUcharToDouble(p.r) * (N/2), 0));
 					data[1].push_back(complex<double>(convUcharToDouble(p.g) * (N/2), 0));
