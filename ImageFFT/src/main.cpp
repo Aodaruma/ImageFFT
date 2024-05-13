@@ -62,6 +62,12 @@ enum class ExportReIm {
 	EXPORT_IMAGINARY = 1
 } typedef ExportReIm;
 
+enum class ExportCurveType {
+	LINEAR = 0,
+	LOG2 = 1,
+	MINKHOWSKI = 2
+} typedef ExportCurveType;
+
 // ---------------------------------------------------------
 
 unsigned char convDoubleToUchar(double value) {
