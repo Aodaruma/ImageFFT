@@ -77,7 +77,23 @@ double sign(double t){
 
 // ---------------------------------------------------------
 
-unsigned char convDoubleToUchar(double value) {
+unsigned char convDoubleToUchar(double value, ExportCurveType curve_type, double p = 2) {
+
+	switch (curve_type) {
+
+		case ExportCurveType::LOG2:
+			// 255/8 * log2(x+1)
+			value = sign(value) * log2(abs(value) + 1) * UcharConvConst;
+			break;
+
+		case ExportCurveType::MINKHOWSKI:
+			value = sign(value) * (-pow(-pow(abs(value), p) + pow(255, p), 1./p) + 255);
+			break;
+
+		default:
+		case ExportCurveType::LINEAR:
+			break;
+	}
 	value /= 2;
 	value += 128;
 
@@ -88,17 +104,147 @@ unsigned char convDoubleToUchar(double value) {
 	return (unsigned char)value;
 }
 
-double convUcharToDouble(unsigned char value) {
+double convUcharToDouble(unsigned char value, ExportCurveType curve_type, double p = 2) {
 	double result = (double)value;
 	result -= 128;
 	result *= 2;
 
+	switch (curve_type) {
+		case ExportCurveType::LOG2:
+			// 2^(8/255 * x) - 1
+			result = sign(result) * (pow(2, InvUcharConvConst * abs(result)) - 1);
+			break;
+
+		case ExportCurveType::MINKHOWSKI:
+			result = sign(result) * pow(pow(-abs(result) + 255, p) - pow(255, p), 1./p);
+			break;
+
+		default:
+		case ExportCurveType::LINEAR:
+			break;
+	}
+
 	return result;
 }
 
+unsigned char convIFFTresult(double value, ExportCurveType curve_type) {
+	value /= 2;
+
+	switch (curve_type) {
+		case ExportCurveType::LOG2:
+			// 2^(8/255 * x) - 1
+			value = sign(value) * (pow(2, InvUcharConvConst * abs(value)) - 1);
+			break;
+
+		/*case ExportCurveType::MINKHOWSKI:
+			value = sign(value) * pow(pow(-abs(value) + 255, p) - pow(255, p), 1. / p);
+			break;*/
+
+		default:
+		case ExportCurveType::LINEAR:
+			break;
+	}
+	return (unsigned char)value;
+}
+
+
 // ---------------------------------------------------------
 
-void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export_type, bool is_swapping_quadrants) {
+void analyzeData(vector<vector<double>> data) {
+	double max = 0;
+	double min = 255;
+	double avg = 0;
+	double mid = 0; 
+	double std = 0;
+
+	for (size_t i = 0; i < data.size(); i++) {
+		for (size_t j = 0; j < data[i].size(); j++) {
+			avg += data[i][j];
+			if (data[i][j] > max) max = data[i][j];
+			if (data[i][j] < min) min = data[i][j];
+		}
+	}
+
+	avg /= data.size() * data[0].size();
+
+	// find mid
+	vector<double> sorted;
+	sorted.resize(data.size() * data[0].size());
+	for (size_t i = 0; i < data.size(); i++)
+		for (size_t j = 0; j < data[i].size(); j++)
+			sorted[i * data[i].size() + j] = data[i][j];
+
+	sort(sorted.begin(), sorted.end());
+
+	mid = sorted[data.size() * data[0].size() / 2];
+
+	// find std
+	for (size_t i = 0; i < data.size(); i++) {
+		for (size_t j = 0; j < data[i].size(); j++) {
+			std += pow(data[i][j] - avg, 2);
+		}
+	}
+	std = sqrt(std / (data.size() * data[0].size()));
+
+	DEBUG(
+		"[ImageFFT.analyzeData] Analyze: max: " + to_string(max)
+		+ "; min: " + to_string(min)
+		+ "; avg: " + to_string(avg)
+		+ "; mid: " + to_string(mid)
+		+ "; std: " + to_string(std)
+	);
+}
+
+void analyzeData(vector<vector<complex<double>>> data) {
+	DEBUG("[ImageFFT.analyzeData] Analyze complex data");
+	
+	complex<double> max = 0;
+	complex<double> min = 255;
+	complex<double> avg = 0;
+	complex<double> mid = 0;
+	complex<double> std = 0;
+
+	for (size_t i = 0; i < data.size(); i++) {
+		for (size_t j = 0; j < data[i].size(); j++) {
+			avg += data[i][j];
+			if (abs(data[i][j]) > abs(max)) max = data[i][j];
+			if (abs(data[i][j]) < abs(min)) min = data[i][j];
+		}
+	}
+
+	avg /= data.size() * data[0].size();
+
+	// find mid
+	vector<complex<double>> sorted;
+	sorted.resize(data.size() * data[0].size());
+	for (size_t i = 0; i < data.size(); i++)
+		for (size_t j = 0; j < data[i].size(); j++)
+			sorted[i * data[i].size() + j] = data[i][j];
+
+	sort(sorted.begin(), sorted.end(), [](complex<double> a, complex<double> b) {
+		return abs(a) < abs(b);
+		});
+
+	mid = sorted[data.size() * data[0].size() / 2];
+
+	// find std
+	for (size_t i = 0; i < data.size(); i++) {
+		for (size_t j = 0; j < data[i].size(); j++) {
+			std += pow(abs(data[i][j]) - abs(avg), 2);
+		}
+	}
+	std = complex<double> (sqrt(std.real() / (data.size() * data[0].size())), sqrt(std.imag() / (data.size() * data[0].size())));
+
+	DEBUG(
+		"[ImageFFT.analyzeData] Analyze: max: " + to_string(max.real()) + "+" + to_string(max.imag()) + "i"
+		+ "; min: " + to_string(min.real()) + "+" + to_string(min.imag()) + "i"
+		+ "; avg: " + to_string(avg.real()) + "+" + to_string(avg.imag()) + "i"
+		+ "; mid: " + to_string(mid.real()) + "+" + to_string(mid.imag()) + "i"
+		+ "; std: " + to_string(std.real()) + "+" + to_string(std.imag()) + "i"
+	);
+}
+
+void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export_type, bool is_swapping_quadrants, ExportCurveType export_curve_type, double curve_p = 2) {
 	
 	// Convert Pixel_RGBA to vector of doubles
 	DEBUG("[ImageFFT.FFT] Converting Pixel_RGBA to vector of doubles");
@@ -182,6 +328,7 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 	}
 
 	DEBUG("[ImageFFT.FFT] Done; result size: " + to_string(result.size()) + "; result[0] size: " + to_string(result[0].size()) + "; result[0][0]: " + to_string(result[0][0].real()) + "+" + to_string(result[0][0].imag()) + "i");
+	if (IS_DEBUG) analyzeData(result);
 
 	// Export result
 	DEBUG("[ImageFFT.FFT] Exporting result");
@@ -197,10 +344,10 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 			// Export real part
 			for (int i = 0; i < h; i++) {
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
-					export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j].real() / (N/2));
-					export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j].real() / (N/2));
-					export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j].real() / (N/2));
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2), export_curve_type, curve_p);
+					export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j].real() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j].real() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j].real() / (N / 2), export_curve_type, curve_p);
 				}
 			}
 		}
@@ -208,10 +355,10 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 			// Export imaginary part
 			for (int i = 0; i < h; i++) {
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
-					export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j].imag() / (N/2));
-					export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j].imag() / (N/2));
-					export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j].imag() / (N/2));
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
 				}
 			}
 		}
@@ -222,32 +369,32 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		case FFTchannel::RED:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
 				}
 			break;
 
 		case FFTchannel::GREEN:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
 				}
 			break;
 
 		case FFTchannel::BLUE:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
 				}
 			break;
 
 		case FFTchannel::ALPHA:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
 				}
 			break;
 
@@ -255,8 +402,8 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		case FFTchannel::MONOCHROME:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N / 2), export_curve_type, curve_p);
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N / 2), export_curve_type, curve_p);
 				}
 			break;
 		}
@@ -280,7 +427,7 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 			pixels[i * w + j] = export_data[i * w + j];
 }
 
-void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export_type, bool is_swapping_quadrants) {
+void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export_type, bool is_swapping_quadrants, ExportCurveType import_curve_type, double curve_p = 2, ExportCurveType output_curve_type = ExportCurveType::LINEAR) {
 
 	// Convert Pixel_RGBA to vector of doubles
 	DEBUG("[ImageFFT.IFFT] Converting Pixel_RGBA to vector of doubles");
@@ -292,16 +439,17 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		for (int i = 0; i < h; i++) {
 			for (int j = 0; j < w; j++) {
 				Pixel_RGBA p = pixels[i * w + j];
-				if (export_type == ExportReIm::EXPORT_REAL){
-					data[0].push_back(complex<double>(convUcharToDouble(p.r) * (N/2), 0));
-					data[1].push_back(complex<double>(convUcharToDouble(p.g) * (N/2), 0));
-					data[2].push_back(complex<double>(convUcharToDouble(p.b) * (N/2), 0));
-					data[3].push_back(complex<double>(convUcharToDouble(p.a) * (N/2), 0));
-				}else{
-					data[0].push_back(complex<double>(0, convUcharToDouble(p.r) * (N/2)));
-					data[1].push_back(complex<double>(0, convUcharToDouble(p.g) * (N/2)));
-					data[2].push_back(complex<double>(0, convUcharToDouble(p.b) * (N/2)));
-					data[3].push_back(complex<double>(0, convUcharToDouble(p.a) * (N/2)));
+				if (export_type == ExportReIm::EXPORT_REAL) {
+					data[0].push_back(complex<double>(convUcharToDouble(p.r, import_curve_type, curve_p) * (N / 2), 0));
+					data[1].push_back(complex<double>(convUcharToDouble(p.g, import_curve_type, curve_p) * (N / 2), 0));
+					data[2].push_back(complex<double>(convUcharToDouble(p.b, import_curve_type, curve_p) * (N / 2), 0));
+					data[3].push_back(complex<double>(convUcharToDouble(p.a, import_curve_type, curve_p) * (N / 2), 0));
+				}
+				else {
+					data[0].push_back(complex<double>(0, convUcharToDouble(p.r, import_curve_type, curve_p) * (N / 2)));
+					data[1].push_back(complex<double>(0, convUcharToDouble(p.g, import_curve_type, curve_p) * (N / 2)));
+					data[2].push_back(complex<double>(0, convUcharToDouble(p.b, import_curve_type, curve_p) * (N / 2)));
+					data[3].push_back(complex<double>(0, convUcharToDouble(p.a, import_curve_type, curve_p) * (N / 2)));
 				}
 			}
 		}
@@ -313,8 +461,8 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 				Pixel_RGBA p = pixels[i * w + j];
 				data[0].push_back(
 					complex<double>(
-						convUcharToDouble(p.r) * (N / 2),
-						convUcharToDouble(p.g) * (N / 2)
+						convUcharToDouble(p.r, import_curve_type, curve_p) * (N / 2),
+						convUcharToDouble(p.g, import_curve_type, curve_p) * (N / 2)
 					)
 				);
 			}
@@ -330,7 +478,7 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 			}
 		}
 	}
-	
+
 
 	// Perform IFFT
 	DEBUG("[ImageFFT.IFFT] Prepare data for IFFT");
@@ -354,7 +502,7 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 	for (unsigned int i = 0; i < data.size(); i++) {
 		DEBUG("[ImageFFT.IFFT] Process IFFT channel " + to_string(i) + "");
 		vector<double> res(w * h);
-		c2r(shape, stride_out, stride_in, axes, BACKWARD, data[i].data(), res.data(), 1./(double)(w*h), FFT_N_THREADS);
+		c2r(shape, stride_out, stride_in, axes, BACKWARD, data[i].data(), res.data(), 1. / (double)(w * h), FFT_N_THREADS);
 		result.push_back(res);
 	}
 
@@ -372,10 +520,10 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 	case FFTchannel::ALL:
 		for (int i = 0; i < h; i++) {
 			for (int j = 0; j < w; j++) {
-				export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j]);
-				export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j]);
-				export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j]);
-				export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j]);
+				export_data[i * w + j].r = convIFFTresult(result[0][i * w + j], output_curve_type);
+				export_data[i * w + j].g = convIFFTresult(result[1][i * w + j], output_curve_type);
+				export_data[i * w + j].b = convIFFTresult(result[2][i * w + j], output_curve_type);
+				export_data[i * w + j].a = convIFFTresult(result[3][i * w + j], output_curve_type);
 			}
 		}
 		break;
@@ -383,32 +531,32 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 	case FFTchannel::RED:
 		for (int i = 0; i < h; i++)
 			for (int j = 0; j < w; j++)
-				export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j]);
+				export_data[i * w + j].r = convIFFTresult(result[0][i * w + j], output_curve_type);
 		break;
 
 	case FFTchannel::GREEN:
 		for (int i = 0; i < h; i++)
 			for (int j = 0; j < w; j++)
-				export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j]);
+				export_data[i * w + j].g = convIFFTresult(result[0][i * w + j], output_curve_type);
 		break;
 
 	case FFTchannel::BLUE:
 		for (int i = 0; i < h; i++)
 			for (int j = 0; j < w; j++)
-				export_data[i * w + j].b = convDoubleToUchar(result[0][i * w + j]);
+				export_data[i * w + j].b = convIFFTresult(result[0][i * w + j], output_curve_type);
 		break;
 
 	case FFTchannel::ALPHA:
 		for (int i = 0; i < h; i++)
 			for (int j = 0; j < w; j++)
-				export_data[i * w + j].a = convDoubleToUchar(result[0][i * w + j]);
+				export_data[i * w + j].a = convIFFTresult(result[0][i * w + j], output_curve_type);
 		break;
 
 	default:
 	case FFTchannel::MONOCHROME:
 		for (int i = 0; i < h; i++)
 			for (int j = 0; j < w; j++)
-				export_data[i * w + j].r = export_data[i * w + j].g = export_data[i * w + j].b = convDoubleToUchar(result[0][i * w + j]);
+				export_data[i * w + j].r = export_data[i * w + j].g = export_data[i * w + j].b = convIFFTresult(result[0][i * w + j], output_curve_type);
 		break;
 	}
 
@@ -420,23 +568,25 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 }
 
 int main(lua_State* L) {
-    Pixel_RGBA* pixels = reinterpret_cast<Pixel_RGBA*>(lua_touserdata(L, 1));
-    int w = static_cast<int>(lua_tointeger(L, 2));
-    int h = static_cast<int>(lua_tointeger(L, 3));
+	Pixel_RGBA* pixels = reinterpret_cast<Pixel_RGBA*>(lua_touserdata(L, 1));
+	int w = static_cast<int>(lua_tointeger(L, 2));
+	int h = static_cast<int>(lua_tointeger(L, 3));
 
 	FFTdirection direction = static_cast<FFTdirection>(lua_tointeger(L, 4));
 	FFTchannel channel = static_cast<FFTchannel>(lua_tointeger(L, 5));
 	ExportReIm export_type = static_cast<ExportReIm>(lua_tointeger(L, 6));
 	bool is_swapping_quadrants = lua_toboolean(L, 7);
-	
+	ExportCurveType export_curve_type = static_cast<ExportCurveType>(lua_tointeger(L, 8));
+	double curve_p = static_cast<double>(lua_tonumber(L, 9));
+
 	DEBUG("[ImageFFT.main] Start");
 	if (direction == FFTdirection::FORWARD) {
 		DEBUG("[ImageFFT.main] Performing FFT");
-		FFT(pixels, w, h, channel, export_type, is_swapping_quadrants);
+		FFT(pixels, w, h, channel, export_type, is_swapping_quadrants, export_curve_type, curve_p);
 	}
 	else {
 		DEBUG("[ImageFFT.main] Performing IFFT");
-		IFFT(pixels, w, h, channel, export_type, is_swapping_quadrants);
+		IFFT(pixels, w, h, channel, export_type, is_swapping_quadrants, export_curve_type, curve_p);
 	}
 
 	if (IS_DEBUG) {
