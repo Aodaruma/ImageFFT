@@ -423,7 +423,7 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 	// Copy result to original pixels
 	DEBUG("[ImageFFT.FFT] Copying result to original pixels");
 	for (int i = 0; i < h; i++)
-		for (int j = 0; j < w; j++) 
+		for (int j = 0; j < w; j++)
 			pixels[i * w + j] = export_data[i * w + j];
 }
 
@@ -507,6 +507,7 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 	}
 
 	DEBUG("[ImageFFT.IFFT] Done; result size: " + to_string(result.size()) + "; result[0] size: " + to_string(result[0].size()) + "; result[0][0]: " + to_string(result[0][0]) + "");
+	if (IS_DEBUG) analyzeData(result);
 
 	// Export result
 	DEBUG("[ImageFFT.IFFT] Exporting result");
@@ -593,29 +594,34 @@ int main(lua_State* L) {
 		// analyze pixels: max, min, avg, mid
 		Pixel_RGBA max = { 0, 0, 0, 0 };
 		Pixel_RGBA min = { 255, 255, 255, 255 };
-		double avg = 0;
+		vector<double> avg = { 0, 0, 0, 0 };
 		Pixel_RGBA mid = { 0, 0, 0, 0 };
+		vector<double> std = { 0, 0, 0, 0 };
 
 		for (int i = 0; i < h; i++) {
 			for (int j = 0; j < w; j++) {
-				avg += pixels[i * w + j].r;
-				avg += pixels[i * w + j].g;
-				avg += pixels[i * w + j].b;
-				avg += pixels[i * w + j].a;
+				Pixel_RGBA p = pixels[i * w + j];
+				avg[0] += p.r;
+				avg[1] += p.g;
+				avg[2] += p.b;
+				avg[3] += p.a;
 
-				if (pixels[i * w + j].r > max.r) max.r = pixels[i * w + j].r;
-				if (pixels[i * w + j].g > max.g) max.g = pixels[i * w + j].g;
-				if (pixels[i * w + j].b > max.b) max.b = pixels[i * w + j].b;
-				if (pixels[i * w + j].a > max.a) max.a = pixels[i * w + j].a;
+				if (p.r > max.r) max.r = p.r;
+				if (p.g > max.g) max.g = p.g;
+				if (p.b > max.b) max.b = p.b;
+				if (p.a > max.a) max.a = p.a;
 
-				if (pixels[i * w + j].r < min.r) min.r = pixels[i * w + j].r;
-				if (pixels[i * w + j].g < min.g) min.g = pixels[i * w + j].g;
-				if (pixels[i * w + j].b < min.b) min.b = pixels[i * w + j].b;
-				if (pixels[i * w + j].a < min.a) min.a = pixels[i * w + j].a;
+				if (p.r < min.r) min.r = p.r;
+				if (p.g < min.g) min.g = p.g;
+				if (p.b < min.b) min.b = p.b;
+				if (p.a < min.a) min.a = p.a;
 			}
 		}
 
-		avg /= w * h * 4;
+		avg[0] /= w * h ;
+		avg[1] /= w * h ;
+		avg[2] /= w * h ;	
+		avg[3] /= w * h ;
 
 		// find mid
 		vector<Pixel_RGBA> sorted;
@@ -630,11 +636,28 @@ int main(lua_State* L) {
 
 		mid = sorted[w * h / 2];
 
+		// calc std
+		for (int i = 0; i < h; i++) {
+			for (int j = 0; j < w; j++) {
+				Pixel_RGBA p = pixels[i * w + j];
+				std[0] += (p.r - avg[0]) * (p.r - avg[0]);
+				std[1] += (p.g - avg[1]) * (p.g - avg[1]);
+				std[2] += (p.b - avg[2]) * (p.b - avg[2]);
+				std[3] += (p.a - avg[3]) * (p.a - avg[3]);
+			}
+		}
+
+		std[0] = sqrt(std[0] / (w * h));
+		std[1] = sqrt(std[1] / (w * h));
+		std[2] = sqrt(std[2] / (w * h));
+		std[3] = sqrt(std[3] / (w * h));
+
 		DEBUG(
 			"[ImageFFT.main] Analyze: max: " + to_string(max.r) + ", " + to_string(max.g) + ", " + to_string(max.b) + ", " + to_string(max.a)
 			+ "; min: " + to_string(min.r) + ", " + to_string(min.g) + ", " + to_string(min.b) + ", " + to_string(min.a) 
-			+ "; avg: " + to_string(avg) 
+			+ "; avg: " + to_string(avg[0]) + ", " + to_string(avg[1]) + ", " + to_string(avg[2]) + ", " + to_string(avg[3])
 			+ "; mid: " + to_string(mid.r) + ", " + to_string(mid.g) + ", " + to_string(mid.b) + ", " + to_string(mid.a)
+			+ "; std: " + to_string(std[0]) + ", " + to_string(std[1]) + ", " + to_string(std[2]) + ", " + to_string(std[3])
 		);
 	}
 
