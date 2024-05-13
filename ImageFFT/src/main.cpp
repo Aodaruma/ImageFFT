@@ -65,12 +65,25 @@ enum class ExportReIm {
 // ---------------------------------------------------------
 
 unsigned char convDoubleToUchar(double value) {
+	value /= 2;
+	value += 128;
+
 	if (value < 0)
 		return 0;
 	if (value > 255)
 		return 255;
 	return (unsigned char)value;
 }
+
+double convUcharToDouble(unsigned char value) {
+	value = (double)value;
+	value -= 128;
+	value *= 2;
+
+	return value;
+}
+
+// ---------------------------------------------------------
 
 void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export_type, bool is_swapping_quadrants) {
 	
@@ -171,10 +184,10 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 			// Export real part
 			for (int i = 0; i < h; i++) {
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j].real() / N /2 +128);
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
+					export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j].real() / (N/2));
+					export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j].real() / (N/2));
+					export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j].real() / (N/2));
 				}
 			}
 		}
@@ -182,10 +195,10 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 			// Export imaginary part
 			for (int i = 0; i < h; i++) {
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].imag() / N /2 +128);
-					export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j].imag() / N /2 +128);
-					export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j].imag() / N /2 +128);
-					export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
+					export_data[i * w + j].g = convDoubleToUchar(result[1][i * w + j].imag() / (N/2));
+					export_data[i * w + j].b = convDoubleToUchar(result[2][i * w + j].imag() / (N/2));
+					export_data[i * w + j].a = convDoubleToUchar(result[3][i * w + j].imag() / (N/2));
 				}
 			}
 		}
@@ -196,32 +209,32 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		case FFTchannel::RED:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
 				}
 			break;
 
 		case FFTchannel::GREEN:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
 				}
 			break;
 
 		case FFTchannel::BLUE:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
 				}
 			break;
 
 		case FFTchannel::ALPHA:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
 				}
 			break;
 
@@ -229,8 +242,8 @@ void FFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm export
 		case FFTchannel::MONOCHROME:
 			for (int i = 0; i < h; i++)
 				for (int j = 0; j < w; j++) {
-					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / N /2 +128);
-					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / N /2 +128);
+					export_data[i * w + j].r = convDoubleToUchar(result[0][i * w + j].real() / (N/2));
+					export_data[i * w + j].g = convDoubleToUchar(result[0][i * w + j].imag() / (N/2));
 				}
 			break;
 		}
@@ -266,15 +279,15 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 		for (int i = 0; i < h; i++) {
 			for (int j = 0; j < w; j++) {
 				if (export_type == ExportReIm::EXPORT_REAL){
-					data[0].push_back(complex<double>((p.r - 128) * 2 * (N/2), 0));
-					data[1].push_back(complex<double>((p.g - 128) * 2 * (N/2), 0));
-					data[2].push_back(complex<double>((p.b - 128) * 2 * (N/2), 0));
-					data[3].push_back(complex<double>((p.a - 128) * 2 * (N/2), 0));
+					data[0].push_back(complex<double>(convUcharToDouble(p.r) * (N/2), 0));
+					data[1].push_back(complex<double>(convUcharToDouble(p.g) * (N/2), 0));
+					data[2].push_back(complex<double>(convUcharToDouble(p.b) * (N/2), 0));
+					data[3].push_back(complex<double>(convUcharToDouble(p.a) * (N/2), 0));
 				}else{
-					data[0].push_back(complex<double>((0, p.r - 128) * 2 * (N/2)));
-					data[1].push_back(complex<double>((0, p.g - 128) * 2 * (N/2)));
-					data[2].push_back(complex<double>((0, p.b - 128) * 2 * (N/2)));
-					data[3].push_back(complex<double>((0, p.a - 128) * 2 * (N/2)));
+					data[0].push_back(complex<double>(0, convUcharToDouble(p.r) * (N/2)));
+					data[1].push_back(complex<double>(0, convUcharToDouble(p.g) * (N/2)));
+					data[2].push_back(complex<double>(0, convUcharToDouble(p.b) * (N/2)));
+					data[3].push_back(complex<double>(0, convUcharToDouble(p.a) * (N/2)));
 				}
 			}
 		}
@@ -286,8 +299,8 @@ void IFFT(Pixel_RGBA* pixels, int w, int h, FFTchannel channel, ExportReIm expor
 				Pixel_RGBA p = pixels[i * w + j];
 				data[0].push_back(
 					complex<double>(
-						(p.r - 128) * 2 * (N / 2),
-						(p.g - 128) * 2 * (N / 2)
+						convUcharToDouble(p.r) * (N / 2),
+						convUcharToDouble(p.g) * (N / 2)
 					)
 				);
 			}
