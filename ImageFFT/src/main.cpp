@@ -68,6 +68,9 @@ enum class ExportCurveType {
 	MINKHOWSKI = 2
 } typedef ExportCurveType;
 
+const double UcharConvConst = 255. / 8.;
+const double InvUcharConvConst = 8. / 255.;
+
 // ---------------------------------------------------------
 
 unsigned char convDoubleToUchar(double value) {
