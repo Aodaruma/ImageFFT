@@ -14,7 +14,7 @@
     -   Channel: FFT を実行する画像チャンネル [All, Mono, Red, Green, Blue, Alpha]
     -   Re<->Im: 出力する画像の実部・虚部切り替え（Channel == "All"のみ有効; その他では R で実部・G で虚部を出力します。）
     -   Enable: FFT を実行するかどうか
-    -   ShowHelp: このヘルプを表示するかどうか
+    -   ShowHelp: ヘルプを表示するかどうか
 
 ## IFFT@ImageFFT
 
@@ -24,7 +24,7 @@
     -   Channel: IFFT の実行結果の出力先画像チャンネル [All, Mono, Red, Green, Blue, Alpha]
     -   Re<->Im: 入力する画像が実部・虚部いずれか（Channel == \"All\"のみ有効; その他では R で実部・G で虚部としてロードします。）
     -   Enable: IFFT を実行するかどうか
-    -   ShowHelp: このヘルプを表示するかどうか
+    -   ShowHelp: ヘルプを表示するかどうか
 
 ---
 
