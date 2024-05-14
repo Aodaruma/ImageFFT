@@ -128,7 +128,7 @@ double convUcharToDouble(unsigned char value, ExportCurveType curve_type, double
 }
 
 unsigned char convIFFTresult(double value, ExportCurveType curve_type) {
-	value /= 2;
+	//value /= 2;
 
 	switch (curve_type) {
 		case ExportCurveType::LOG2:
@@ -144,6 +144,11 @@ unsigned char convIFFTresult(double value, ExportCurveType curve_type) {
 		case ExportCurveType::LINEAR:
 			break;
 	}
+
+	if (value < 0)
+		return 0;
+	if (value > 255)
+		return 255;
 	return (unsigned char)value;
 }
 
