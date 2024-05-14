@@ -1,8 +1,8 @@
 # ImageFFT
 
-画像のフーリエ変換・逆フーリエ変換を行うプラグインです。
+画像の高速フーリエ変換(FFT)・高速逆フーリエ変換(IFFT)を行うプラグインです。
 
-![ImageFFT](https://github.com/Aodaruma/ImageFFT/blob/main/thumnbnail.png?raw=true)
+![ImageFFT](assets/thumnbnail.png)
 
 現在は **version 1.0** が最新です。
 
