@@ -23,7 +23,7 @@ developed by Aodaruma
 --track0:Channel,0,5,0,1
 --track1:Re<->Im,0,1,0,1
 --track2:SwapQ,0,1,0,1
---track3:OutCurve,0,2,0,1
+--track3:OutCurve,0,1,1,1
 --check0:Enable,0
 --dialog:show help/chk,local is_show_help=0;p,local curve_p=2;
 
@@ -41,7 +41,7 @@ if is_show_help then
         .. "- Channel: FFTを実行する画像チャンネル [All, Mono, Red, Green, Blue, Alpha]\n"
         .. "- Re<->Im: 出力する画像の実部・虚部切り替え（Channel == \"All\"のみ有効; その他ではRで実部・Gで虚部を出力します。）\n"
         .. "- SwapQ: 画像の象限（四隅）を入れ替えるかどうか （入れ替えることにより、低周波帯域が中央に集まり、フィルタリングしやすいです）\n"
-        .. "- OutCurve: 出力画像のカーブ [Linear, Log2, Minkhowski-Distance]\n"
+        .. "- OutCurve: 出力画像のカーブ [Linear, Log2]\n"
         .. "- Enable: FFTを実行するかどうか\n"
         .. "- ShowHelp: このヘルプを表示するかどうか\n"
         .. "\n"
@@ -71,7 +71,7 @@ end
 --track0:Channel,0,5,0,1
 --track1:Re<->Im,0,1,0,1
 --track2:SwapQ,0,1,0,1
---track3:InCurve,0,2,0,1
+--track3:InCurve,0,1,1,1
 --check0:Enable,0
 --dialog:show help/chk,local is_show_help=0;p,local curve_p=2;
 
@@ -89,7 +89,7 @@ if is_show_help then
         .. "- Channel: IFFTの実行結果の出力先画像チャンネル [All, Mono, Red, Green, Blue, Alpha]\n"
         .. "- Re<->Im: 入力する画像が実部・虚部いずれか（Channel == \"All\"のみ有効; その他ではRで実部・Gで虚部としてロードします。）\n"
         .. "- SwapQ: 画像の象限（四隅）を入れ替えるかどうか （入れ替えることにより、低周波帯域が中央に集まり、フィルタリングしやすいです）\n"
-        .. "- InCurve: 画像の入力カーブ [Linear, Log2, Minkhowski-Distance]\n"
+        .. "- InCurve: 画像の入力カーブ [Linear, Log2]\n"
         .. "- Enable: IFFTを実行するかどうか\n"
         .. "- ShowHelp: このヘルプを表示するかどうか\n"
         .. "\n"
