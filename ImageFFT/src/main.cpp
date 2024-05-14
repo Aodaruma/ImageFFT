@@ -86,9 +86,9 @@ unsigned char convDoubleToUchar(double value, ExportCurveType curve_type, double
 			value = sign(value) * log2(abs(value) + 1) * UcharConvConst;
 			break;
 
-		case ExportCurveType::MINKHOWSKI:
+		/*case ExportCurveType::MINKHOWSKI:
 			value = sign(value) * (-pow(-pow(abs(value), p) + pow(255, p), 1./p) + 255);
-			break;
+			break;*/
 
 		default:
 		case ExportCurveType::LINEAR:
@@ -115,9 +115,9 @@ double convUcharToDouble(unsigned char value, ExportCurveType curve_type, double
 			result = sign(result) * (pow(2, InvUcharConvConst * abs(result)) - 1);
 			break;
 
-		case ExportCurveType::MINKHOWSKI:
+		/*case ExportCurveType::MINKHOWSKI:
 			result = sign(result) * pow(pow(-abs(result) + 255, p) - pow(255, p), 1./p);
-			break;
+			break;*/
 
 		default:
 		case ExportCurveType::LINEAR:
